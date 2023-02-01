@@ -22,6 +22,10 @@ parser.add_argument('-k',
 					dest='keyfile',
 					help='File containing key to encrypt/decrypt (IN ASCII FORMAT)'
 					)
+parser.add_argument('-o',
+					dest='writeToFile',
+					help='Write output to file'
+					)
 args = parser.parse_args()
 
 
@@ -42,9 +46,7 @@ def decryptWithMultipleKeys(cipher, key):
 	keyfile = helpers.File(key)
 	keyfile.read()
 	proc = helpers.Decryption(cipherfile.data, keyfile.data)
-	result = proc.decryptWithMultipleKeys()
-	for res in result:
-		print(res)
+	return proc.decryptWithMultipleKeys()
 
 
 def decryptWithOneKey(cipher, key):
@@ -55,9 +57,7 @@ def decryptWithOneKey(cipher, key):
 	keyfile = helpers.File(key)
 	keyfile.read()
 	proc = helpers.Decryption(cipherfile.data, keyfile.data)
-	proc.decryptWithOneKey()
-	for i, plain in enumerate(proc.plaintext):
-		print(f"{i+1}: {plain}")
+	return proc.decryptWithOneKey()
 
 
 def encryptWithOneKey(plain, key):
@@ -66,9 +66,7 @@ def encryptWithOneKey(plain, key):
 	keyfile = helpers.File(key)
 	keyfile.read()
 	proc = helpers.Encryption(plainfile.data, keyfile.data)
-	result = proc.encryptWithOneKey()
-	for res in result:
-		print(res)
+	return proc.encryptWithOneKey()
 
 
 def encryptWithMultipleKeys(plain, key):
@@ -77,12 +75,11 @@ def encryptWithMultipleKeys(plain, key):
 	keyfile = helpers.File(key)
 	keyfile.read()
 	proc = helpers.Encryption(plainfile.data, keyfile.data)
-	result = proc.encryptWithMultipleKeys()
-	for res in result:
-		print(res)
+	return proc.encryptWithMultipleKeys()
 
 
 def main():
+	result = []
 	mode = args.mode
 	# Decrypt with one key
 	if mode == '1':
@@ -92,7 +89,7 @@ def main():
 		if not args.keyfile:
 			print('[-] Please provide a file containing key')
 			exit()
-		decryptWithOneKey(args.cipherfile, args.keyfile)
+		result = decryptWithOneKey(args.cipherfile, args.keyfile)
 
 	# Decrypt with multiple keys
 	elif mode == '2':
@@ -102,7 +99,7 @@ def main():
 		if not args.keyfile:
 			print('[-] Please provide a file containing keys')
 			exit()
-		decryptWithMultipleKeys(args.cipherfile, args.keyfile	)
+		result = decryptWithMultipleKeys(args.cipherfile, args.keyfile	)
 
 	# Decrypt without key
 	elif mode == '3':
@@ -119,7 +116,7 @@ def main():
 		if not args.keyfile:
 			print(f"[-] Please provide a file containing a key")
 			exit()
-		encryptWithOneKey(args.plainfile, args.keyfile)
+		result = encryptWithOneKey(args.plainfile, args.keyfile)
 
 	# Encrypt multiple with multiple keys
 	elif mode == '5':
@@ -129,7 +126,18 @@ def main():
 		if not args.keyfile:
 			print(f"[-] Please provide a file containing keys")
 			exit()
-		encryptWithMultipleKeys(args.plainfile, args.keyfile)
+		result = encryptWithMultipleKeys(args.plainfile, args.keyfile)
+
+	if result:
+		for res in result:
+			print(res)
+		if args.writeToFile:
+			with open(args.writeToFile, 'w') as out:
+				for res in result:
+					out.write(res + '\n')
+	else:
+		print("[-] Nothing to show.")
+		exit()
 
 
 if __name__ == "__main__":
