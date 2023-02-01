@@ -6,21 +6,21 @@ import helpers, argparse
 parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-m',
 					dest='mode',
-					choices=['1', '2', '3', '4'],
+					choices=['1', '2', '3', '4', '5'],
 					help='1: Decrypt with one key\n2: Decrypt multiple cipher text with multiple keys\n3: Decrypt without key (multiple cipher text required)\n4: Encrypt multiple text with the same key (INSECURE)\n5: Encrypt multiple text with multiple keys (Number of keys = number of plain text)',
 					required=True
 					)
 parser.add_argument('-c',
 					dest='cipherfile',
-					help='File containing ciphertext separated with a new line each'
+					help='File containing ciphertext separated with a new line each (IN HEX FORMAT)'
 					)
 parser.add_argument('-p',
 					dest='plainfile',
-					help='File containing plain text, separated by a new line each if multiple'
+					help='File containing plain text, separated by a new line each if multiple (IN ASCII FORMAT)'
 					)
 parser.add_argument('-k',
 					dest='keyfile',
-					help='File containing key to encrypt/decrypt'
+					help='File containing key to encrypt/decrypt (IN ASCII FORMAT)'
 					)
 args = parser.parse_args()
 
@@ -35,6 +35,18 @@ def decryptWithoutKey(cipher):
 	proc.startDecrypting()
 
 
+def decryptWithMultipleKeys(cipher, key):
+	# TODO
+	cipherfile = helpers.File(cipher)
+	cipherfile.read()
+	keyfile = helpers.File(key)
+	keyfile.read()
+	proc = helpers.Decryption(cipherfile.data, keyfile.data)
+	result = proc.decryptWithMultipleKeys()
+	for res in result:
+		print(res)
+
+
 def decryptWithOneKey(cipher, key):
 	cipherfile = helpers.File(cipher)
 	cipherfile.read()
@@ -46,6 +58,28 @@ def decryptWithOneKey(cipher, key):
 	proc.decryptWithOneKey()
 	for i, plain in enumerate(proc.plaintext):
 		print(f"{i+1}: {plain}")
+
+
+def encryptWithOneKey(plain, key):
+	plainfile = helpers.File(plain)
+	plainfile.read()
+	keyfile = helpers.File(key)
+	keyfile.read()
+	proc = helpers.Encryption(plainfile.data, keyfile.data)
+	result = proc.encryptWithOneKey()
+	for res in result:
+		print(res)
+
+
+def encryptWithMultipleKeys(plain, key):
+	plainfile = helpers.File(plain)
+	plainfile.read()
+	keyfile = helpers.File(key)
+	keyfile.read()
+	proc = helpers.Encryption(plainfile.data, keyfile.data)
+	result = proc.encryptWithMultipleKeys()
+	for res in result:
+		print(res)
 
 
 def main():
@@ -62,7 +96,13 @@ def main():
 
 	# Decrypt with multiple keys
 	elif mode == '2':
-		print("Decrypt with multiple keys: TODO")
+		if not args.cipherfile:
+			print('[-] Please provide a file containing cipher text')
+			exit()
+		if not args.keyfile:
+			print('[-] Please provide a file containing keys')
+			exit()
+		decryptWithMultipleKeys(args.cipherfile, args.keyfile	)
 
 	# Decrypt without key
 	elif mode == '3':
@@ -73,11 +113,24 @@ def main():
 
 	# Encrypt with one key
 	elif mode == '4':
-		print('Encrypt with one key: TODO')
+		if not args.plainfile:
+			print(f"[-] Please provide a file containing plan text to encrypt")
+			exit()
+		if not args.keyfile:
+			print(f"[-] Please provide a file containing a key")
+			exit()
+		encryptWithOneKey(args.plainfile, args.keyfile)
 
 	# Encrypt multiple with multiple keys
 	elif mode == '5':
-		print('Encrypt multiple with multiple keys: TODO')
+		if not args.plainfile:
+			print(f"[-] Please provide a file containing plan text to encrypt")
+			exit()
+		if not args.keyfile:
+			print(f"[-] Please provide a file containing keys")
+			exit()
+		encryptWithMultipleKeys(args.plainfile, args.keyfile)
+
 
 if __name__ == "__main__":
 	main()

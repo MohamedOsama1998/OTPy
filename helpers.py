@@ -13,6 +13,10 @@ class File:
 			print(f"[-] Error openning file '{self.filename}'")
 			exit()
 
+		if not lines:
+			print(f'[-] File {self.filename} is empty, exiting...')
+			exit()
+
 		for line in lines:
 			line = line.strip()
 			if not line:
@@ -40,7 +44,7 @@ class operation:
 	def xor(s1, s2):
 		res = ""
 		for i in range(len(s1)):
-			res += format(int(s1[i], 16) ^ int(s2[i % len(s2)], 16), '01x')
+			res += format(int(s1[i], 16) ^ int(s2[i], 16), '01x')
 		return res
 
 	def str2hex(text):
@@ -52,14 +56,33 @@ class operation:
 #############################################################################
 
 class Encryption:
-	def __init__(self, plaintext, key):
+	def __init__(self, plaintext, key=[]):
 		self.plaintext = plaintext
 		self.ciphertext = []
 		self.key = key
 
-	def encrypt(self):
-		print("Encrypt with key")
-		# TODO
+	def encryptWithOneKey(self):
+		plaintext = self.plaintext
+		key = self.key[0]
+		for plain in plaintext:
+			plainHex = operation.str2hex(plain)
+			keyHex = operation.str2hex(key)
+			cipher = operation.xor(plainHex, keyHex)
+			self.ciphertext.append(cipher)
+		return self.ciphertext
+
+	def encryptWithMultipleKeys(self):
+		plaintext = self.plaintext
+		key = self.key
+		if len(key) < len(plaintext):
+			print(f"[-] Insufficient number of keys, please provide at least {len(plaintext)} keys")
+			exit()
+		for i in range(len(plaintext)):
+			plainHex = operation.str2hex(plaintext[i])
+			keyHex = operation.str2hex(key[i])
+			cipher = operation.xor(plainHex, keyHex)
+			self.ciphertext.append(cipher)
+		return self.ciphertext
 
 #############################################################################
 
@@ -68,10 +91,9 @@ class Decryption:
 		self.ciphertext = ciphertext
 		self.plaintext = []
 		self.key = key
-
-	def decryptWithKey(self):
-		# TODO
-		print("Decrypt with key")
+		if not ciphertext:
+			print('[-] Cipher text was not provided')
+			exit()
 
 	def decryptWithoutKey(self, pattern):
 		# TODO: Fix a bug where symbols can cause issues
@@ -114,13 +136,22 @@ class Decryption:
 	def decryptWithOneKey(self):
 		ciphertext = self.ciphertext
 		key = self.key[0]
-		if not ciphertext:
-			print('[-] Cipher text was not provided')
-			exit()
 		if not key:
 			print('[-] Key was not provided')
 			exit()
 		for cipher in ciphertext:
 			plain = operation.hex2str(operation.xor(cipher, operation.str2hex(key)))
+			self.plaintext.append(plain)
+		return self.plaintext
+
+	def decryptWithMultipleKeys(self):
+		ciphertext = self.ciphertext
+		key = self.key
+		if len(key) < len(ciphertext):
+			print(f"[-] Insufficient number of keys, please provide at least {len(ciphertext)} keys")
+			exit()
+		for i in range(len(ciphertext)):
+			plainHex = operation.xor(ciphertext[i], operation.str2hex(key[i]))
+			plain = operation.hex2str(plainHex)
 			self.plaintext.append(plain)
 		return self.plaintext
